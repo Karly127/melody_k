@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../core/storage/local_storage_service.dart';
+import '../../home/screens/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,20 +14,31 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _userController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  void _iniciarSesion() {
+void _iniciarSesion() async {
     if (_formKey.currentState!.validate()) {
-      // Aquí se conectará posteriormente con SQLite para validar credenciales
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Validando credenciales...')),
+      final usuarioData = await LocalStorageService.instance.validarCredenciales(
+        _userController.text,
+        _passwordController.text,
       );
-    }
-  }
 
-  @override
-  void dispose() {
-    _userController.dispose();
-    _passwordController.dispose();
-    super.dispose();
+      if (!mounted) return;
+
+      if (usuarioData != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomeScreen(usuarioActual: usuarioData),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Usuario o contraseña incorrectos'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
   }
 
   @override
